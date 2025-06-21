@@ -1,16 +1,16 @@
 using System.Runtime.CompilerServices;
 public class CreatePostHandler
 {
-    private readonly IPostStorage _PostStorage;
+    private readonly IPostStorage _postStorage;
 
     public CreatePostHandler(IPostStorage postStorage)
     {
-        _PostStorage = postStorage;
+        _postStorage = postStorage;
     }
     public async Task<CreatePostResponse> HandleAsync(CreatePostRequest request)
     {
         var modifiedSlug = request.Slug?.Trim().ToLower().Replace(" ", "-") ?? request.Title.Trim().ToLower().Replace(" ", "-");
-        if(await _PostStorage.SlugExistsAsync(modifiedSlug))
+        if(await _postStorage.SlugExistsAsync(modifiedSlug))
             throw new Exception("Slug already exists, please try another one.");
 
         var post = new Post
@@ -27,7 +27,7 @@ public class CreatePostHandler
             PublishingDate = request.PublishingDate,
             ModifiedDate = DateTime.UtcNow
         };
-        await _PostStorage.SavePostAsync(post);
+        await _postStorage.SavePostAsync(post);
 
         return new CreatePostResponse
         {

@@ -1,7 +1,7 @@
 using System.Text.Json;
 public class FilePostStorage : IPostStorage
 {
-    private readonly string _postStorageFolder = Path.Combine("content","posts");
+    private readonly string _postStorageFolder = Path.Combine("content", "posts");
 
     public FilePostStorage()
     {
@@ -34,5 +34,17 @@ public class FilePostStorage : IPostStorage
         var json = JsonSerializer.Serialize(post, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(metaPath, json);
         await File.WriteAllTextAsync(contentPath, post.Body);
+    }
+    public async Task<Post> GetPostBySlugAsync(string slug)
+    {
+        var metaFiles = Directory.GetFiles(_postStorageFolder, "meta.json", SearchOption.AllDirectories);
+        foreach (var file in metaFiles)
+        {
+            var json = await File.ReadAllTextAsync(file);
+            var post = JsonSerializer.Deserialize<Post>(json);
+            if (!string.IsNullOrEmpty(post?.Slug) && post.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase))
+                return post;
+        }
+        return null;
     }
 }
