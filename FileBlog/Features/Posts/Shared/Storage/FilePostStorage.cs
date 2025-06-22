@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.VisualBasic;
 public class FilePostStorage : IPostStorage
 {
     private readonly string _postStorageFolder = Path.Combine("content", "posts");
@@ -7,9 +8,13 @@ public class FilePostStorage : IPostStorage
     {
         Directory.CreateDirectory(_postStorageFolder);
     }
+    private string[] GetMetaFiles()
+    {
+        return Directory.GetFiles(_postStorageFolder, "meta.json", SearchOption.AllDirectories);
+    }
     public async Task<bool> SlugExistsAsync(string slug)
     {
-        var metaFiles = Directory.GetFiles(_postStorageFolder, "meta.json", SearchOption.AllDirectories);
+        var metaFiles = GetMetaFiles();
         foreach (var file in metaFiles)
         {
             var json = await File.ReadAllTextAsync(file);
@@ -46,5 +51,18 @@ public class FilePostStorage : IPostStorage
                 return post;
         }
         return null;
+    }
+    public async Task<List<Post>> GetAllPostsAsync()
+    {
+        List<Post> allPosts = [];
+        var metaFiles = GetMetaFiles();
+        foreach (var file in metaFiles)
+        {
+            var json = await File.ReadAllTextAsync(file);
+            var post = JsonSerializer.Deserialize<Post>(json);
+            if (post != null)
+                allPosts.Add(post);
+        }
+        return allPosts;
     }
 }

@@ -4,6 +4,7 @@ builder.Services.AddSingleton<IPostStorage, FilePostStorage>();
 builder.Services.AddScoped<CreatePostHandler>();
 builder.Services.AddScoped<CreatePostValidator>();
 builder.Services.AddScoped<GetPostBySlugHandler>();
+builder.Services.AddScoped<GetAllPostsHandler>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -17,4 +18,5 @@ if (app.Environment.IsDevelopment())
 
 CreatePostEndpoint.Map(app);
 GetPostBySlugEndpoint.Map(app);
+GetAllPostsEndpoint.Map(app);
 app.Run();
