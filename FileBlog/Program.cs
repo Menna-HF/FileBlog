@@ -18,5 +18,5 @@ if (app.Environment.IsDevelopment())
 
 CreatePostEndpoint.Map(app);
 GetPostBySlugEndpoint.Map(app);
-GetAllPostsEndpoint.Map(app);
+// GetAllPostsEndpoint.Map(app);
 app.Run();

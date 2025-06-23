@@ -65,4 +65,22 @@ public class FilePostStorage : IPostStorage
         }
         return allPosts;
     }
+    public async Task<List<Post>> GetFilteredPostsAsync(List<string> tags, List<string> categories)
+    {
+        var allPosts = await GetAllPostsAsync();
+        List<Post> filteredPosts = [];
+
+        if (tags.Count == 0 && categories.Count == 0)
+            return allPosts;
+
+        foreach (var post in allPosts)
+        {
+            bool tagExists = tags.Count == 0 || post.Tags.Any(tag => tags.Contains(tag));
+            bool categoryExists = categories.Count == 0 || post.Categories.Any(category => categories.Contains(category));
+
+            if (tagExists && categoryExists)
+                filteredPosts.Add(post);
+        }
+        return filteredPosts;
+    }
 }
