@@ -2,7 +2,7 @@ public class GetAllPostsEndpoint
 {
     public static void Map(WebApplication app)
     {
-        app.MapGet("/posts", async (GetAllPostsHandler handler, [AsParameters] GetAllPostsRequest request) =>
+        app.MapPost("/posts/tagsAndCategories", async (GetAllPostsHandler handler, GetAllPostsRequest request) =>
         {
             try
             {
