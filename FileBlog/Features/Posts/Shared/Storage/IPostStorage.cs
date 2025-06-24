@@ -5,5 +5,6 @@ public interface IPostStorage
     public Task<Post> GetPostBySlugAsync(string slug);
     public Task<List<Post>> GetAllPostsAsync();
     public Task<List<Post>> GetFilteredPostsAsync(List<string> tags, List<string> categories);
+    public Task<bool> DeletePostAsync(string slug);
 }
 

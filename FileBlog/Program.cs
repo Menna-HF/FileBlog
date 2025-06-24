@@ -5,6 +5,7 @@ builder.Services.AddScoped<CreatePostHandler>();
 builder.Services.AddScoped<CreatePostValidator>();
 builder.Services.AddScoped<GetPostBySlugHandler>();
 builder.Services.AddScoped<GetAllPostsHandler>();
+builder.Services.AddScoped<DeletePostHandler>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -19,4 +20,5 @@ if (app.Environment.IsDevelopment())
 CreatePostEndpoint.Map(app);
 GetPostBySlugEndpoint.Map(app);
 GetAllPostsEndpoint.Map(app);
+DeletePostEndpoint.Map(app);
 app.Run();

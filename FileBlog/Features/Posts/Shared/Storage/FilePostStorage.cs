@@ -83,4 +83,22 @@ public class FilePostStorage : IPostStorage
         }
         return filteredPosts;
     }
+    public async Task<bool> DeletePostAsync(string slug)
+    {
+        if (!await SlugExistsAsync(slug))
+            return false;
+        var post = await GetPostBySlugAsync(slug);
+        string folderName = $"{(post.PublishingDate ?? DateTime.UtcNow).ToString("yyyy-MM-dd")}-{slug}";
+        string folderPath = Path.Combine(_postStorageFolder, folderName);
+        try
+        {
+            Directory.Delete(folderPath, true);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return false;
+        }
+    }
 }
