@@ -42,7 +42,7 @@ public class FilePostStorage : IPostStorage
     }
     public async Task<Post> GetPostBySlugAsync(string slug)
     {
-        var metaFiles = Directory.GetFiles(_postStorageFolder, "meta.json", SearchOption.AllDirectories);
+        var metaFiles = GetMetaFiles();
         foreach (var file in metaFiles)
         {
             var json = await File.ReadAllTextAsync(file);
