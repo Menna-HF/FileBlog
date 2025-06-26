@@ -19,7 +19,7 @@ public class FilePostStorage : IPostStorage
         {
             var json = await File.ReadAllTextAsync(file);
             var post = JsonSerializer.Deserialize<Post>(json);
-            if (!string.IsNullOrWhiteSpace(post?.Slug) && post.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase) == true)
+            if (!string.IsNullOrWhiteSpace(post?.Slug) && post.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
         return false;
