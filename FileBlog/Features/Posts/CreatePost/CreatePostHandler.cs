@@ -16,8 +16,8 @@ public class CreatePostHandler
         var post = new Post
         {
             Id = Guid.NewGuid(),
-            Title = request.Title,
-            Description = request.Description,
+            Title = request.Title.Trim(),
+            Description = request.Description.Trim(),
             Author = string.Empty, //  Will be handled later using JWT to extract the author's username
             Body = request.Body,
             Slug = modifiedSlug,
