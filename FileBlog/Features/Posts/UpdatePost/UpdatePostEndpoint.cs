@@ -19,6 +19,6 @@ public class UpdatePostEndpoint
             {
                 return Results.BadRequest(new {Message = ex.Message});
             }
-        });
+        }).RequireAuthorization("AllowedToUpdatePosts");
     }   
 }

@@ -13,6 +13,6 @@ public class DeletePostEndpoint
             {
                 return Results.NotFound(new { Message = ex.Message });
             }
-        });
+        }).RequireAuthorization("AllowedToDeletePosts");
     }
 }

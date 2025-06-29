@@ -19,6 +19,6 @@ public class CreatePostEndpoint
             {
                 return Results.BadRequest(new { Message = ex.Message });
             }
-        });
+        }).RequireAuthorization("AllowedToCreatePosts");
     }
 }

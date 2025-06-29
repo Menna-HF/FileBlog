@@ -45,6 +45,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AllowedToCreatePosts", policy => policy.RequireRole("Author"));
+    options.AddPolicy("AllowedToDeletePosts", policy => policy.RequireRole("Author", "Admin"));
+    options.AddPolicy("AllowedToUpdatePosts", policy => policy.RequireRole("Author", "Editor"));
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -54,6 +61,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+app.UseAuthorization();
 
 CreatePostEndpoint.Map(app);
 GetPostBySlugEndpoint.Map(app);
