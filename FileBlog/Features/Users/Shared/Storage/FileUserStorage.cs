@@ -32,4 +32,16 @@ public class FileUserStorage : IUserStorage
         var filePath = Path.Combine(folderPath, "profile.json");
         await File.WriteAllTextAsync(filePath, json);
     }
+    public async Task<User?> GetUserByUsernameAsync(string username)
+    {
+        var metaFiles = GetMetaFiles();
+        foreach (var file in metaFiles)
+        {
+            var json = await File.ReadAllTextAsync(file);
+            var user = JsonSerializer.Deserialize<User>(json);
+            if (!string.IsNullOrEmpty(user?.Username) && user.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
+                return user;
+        }
+        return null;
+    }
 }

@@ -40,7 +40,7 @@ public class FilePostStorage : IPostStorage
         await File.WriteAllTextAsync(metaPath, json);
         await File.WriteAllTextAsync(contentPath, post.Body);
     }
-    public async Task<Post> GetPostBySlugAsync(string slug)
+    public async Task<Post?> GetPostBySlugAsync(string slug)
     {
         var metaFiles = GetMetaFiles();
         foreach (var file in metaFiles)
@@ -88,7 +88,7 @@ public class FilePostStorage : IPostStorage
         if (!await SlugExistsAsync(slug))
             return false;
         var post = await GetPostBySlugAsync(slug);
-        string folderName = $"{(post.PublishingDate ?? DateTime.UtcNow).ToString("yyyy-MM-dd")}-{slug}";
+        string folderName = $"{(post?.PublishingDate ?? DateTime.UtcNow).ToString("yyyy-MM-dd")}-{slug}";
         string folderPath = Path.Combine(_postStorageFolder, folderName);
         try
         {

@@ -17,7 +17,7 @@ public class RegisterUserHandler
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Username = request.Username.Trim(),
+            Username = request.Username.Trim().ToLower(),
             Email = request.Email,
             Role = request.Role,
             RegistrationDate = DateTime.UtcNow
