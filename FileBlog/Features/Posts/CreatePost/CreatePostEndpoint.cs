@@ -2,7 +2,7 @@ public class CreatePostEndpoint
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/posts", async (CreatePostRequest request, CreatePostHandler handler, CreatePostValidator validator) =>
+        app.MapPost("/posts", async (CreatePostRequest request, CreatePostHandler handler, CreatePostValidator validator, HttpContext httpContext) =>
         {
             var validation = await validator.ValidateAsync(request);
             if (!validation.IsValid)
@@ -12,7 +12,7 @@ public class CreatePostEndpoint
             }
             try
             {
-                var response = await handler.HandleAsync(request);
+                var response = await handler.HandleAsync(request, httpContext.User);
                 return Results.Ok(response);
             }
             catch (Exception ex)

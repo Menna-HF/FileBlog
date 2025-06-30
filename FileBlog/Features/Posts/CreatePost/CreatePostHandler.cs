@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 public class CreatePostHandler
 {
     private readonly IPostStorage _postStorage;
@@ -7,24 +8,30 @@ public class CreatePostHandler
     {
         _postStorage = postStorage;
     }
-    public async Task<CreatePostResponse> HandleAsync(CreatePostRequest request)
+    public async Task<CreatePostResponse> HandleAsync(CreatePostRequest request, ClaimsPrincipal user)
     {
         var modifiedSlug = request.Slug?.Trim().ToLower().Replace(" ", "-") ?? request.Title.Trim().ToLower().Replace(" ", "-");
         if(await _postStorage.SlugExistsAsync(modifiedSlug))
             throw new Exception("Slug already exists, please try another one.");
+
+        var author = user.Identity?.Name;
+        if (string.IsNullOrEmpty(author))
+            throw new Exception("No author is found.");
+
+        var status = request.PublishingDate == null || request.PublishingDate > DateTime.UtcNow ? PostStatus.Draft : PostStatus.Published;
 
         var post = new Post
         {
             Id = Guid.NewGuid(),
             Title = request.Title.Trim(),
             Description = request.Description.Trim(),
-            Author = string.Empty, //  Will be handled later using JWT to extract the author's username
+            Author = author,
             Body = request.Body,
             Slug = modifiedSlug,
-            Status = request.PublishingDate == null || request.PublishingDate > DateTime.UtcNow? PostStatus.Draft : PostStatus.Published,
+            Status = status,
             Tags = request.Tags,
             Categories = request.Categories,
-            PublishingDate = request.PublishingDate,
+            PublishingDate = request.PublishingDate ?? (status == PostStatus.Published ? DateTime.UtcNow : null),
             ModifiedDate = DateTime.UtcNow
         };
         await _postStorage.SavePostAsync(post);
