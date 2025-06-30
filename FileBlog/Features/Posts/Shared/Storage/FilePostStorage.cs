@@ -8,7 +8,7 @@ public class FilePostStorage : IPostStorage
     {
         Directory.CreateDirectory(_postStorageFolder);
     }
-    private string[] GetMetaFiles()
+    public string[] GetMetaFiles()
     {
         return Directory.GetFiles(_postStorageFolder, "meta.json", SearchOption.AllDirectories);
     }
@@ -52,37 +52,7 @@ public class FilePostStorage : IPostStorage
         }
         return null;
     }
-    public async Task<List<Post>> GetAllPostsAsync()
-    {
-        List<Post> allPosts = [];
-        var metaFiles = GetMetaFiles();
-        foreach (var file in metaFiles)
-        {
-            var json = await File.ReadAllTextAsync(file);
-            var post = JsonSerializer.Deserialize<Post>(json);
-            if (post != null)
-                allPosts.Add(post);
-        }
-        return allPosts;
-    }
-    public async Task<List<Post>> GetFilteredPostsAsync(List<string> tags, List<string> categories)
-    {
-        var allPosts = await GetAllPostsAsync();
-        List<Post> filteredPosts = [];
-
-        if (tags.Count == 0 && categories.Count == 0)
-            return allPosts;
-
-        foreach (var post in allPosts)
-        {
-            bool tagExists = tags.Count == 0 || post.Tags.Any(tag => tags.Contains(tag));
-            bool categoryExists = categories.Count == 0 || post.Categories.Any(category => categories.Contains(category));
-
-            if (tagExists && categoryExists)
-                filteredPosts.Add(post);
-        }
-        return filteredPosts;
-    }
+    
     public async Task<bool> DeletePostAsync(string slug)
     {
         if (!await SlugExistsAsync(slug))
