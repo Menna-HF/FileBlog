@@ -26,16 +26,22 @@ public class CreatePostValidator : AbstractValidator<CreatePostRequest>
         RuleFor(x => x.Tags)
         .Must(tags => tags == null || tags.Count <= 4).WithMessage("The maximum number of tags is 4.");
         RuleForEach(x => x.Tags)
-        .NotEmpty().WithMessage("Tags can't be empty")
-        .Length(2, 20).WithMessage("Each tag must be between 2 and 20 characters.")
-        .When(x => x.Tags != null);
+        .ChildRules(tag =>
+        {
+            tag.RuleFor(t => t)
+            .NotEmpty().WithMessage("Tag can't be empty")
+            .Length(2, 20).WithMessage("Each tag must be between 2 and 20 characters.");
+        });
 
         RuleFor(x => x.Categories)
        .Must(categories => categories == null || categories.Count <= 4).WithMessage("The maximum number of categories is 4.");
         RuleForEach(x => x.Categories)
-        .NotEmpty().WithMessage("Categories can't be empty")
-        .When(x => x.Categories != null);
-
+        .ChildRules(categories =>
+        {
+            categories.RuleFor(c => c)
+            .NotEmpty().WithMessage("Category can't be empty")
+            .Length(2, 20).WithMessage("Each category must be between 2 and 20 characters.");
+        });
 
         RuleFor(x => x.PublishingDate)
         .Must(date => date==null || date >= DateTime.UtcNow.Date).WithMessage("Publishing date must be today or a future date.");
