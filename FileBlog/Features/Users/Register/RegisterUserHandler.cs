@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Extensions;
 
 public class RegisterUserHandler
 {
@@ -27,7 +28,7 @@ public class RegisterUserHandler
                 Id = Guid.NewGuid(),
                 Username = request.Username.Trim().ToLower(),
                 Email = request.Email,
-                Role = request.Role,
+                Role = GetUserRole(request.Role),
                 RegistrationDate = DateTime.UtcNow
             };
             user.HashedPassword = _passwordHasher.HashPassword(user, request.Password);
@@ -47,6 +48,23 @@ public class RegisterUserHandler
         {
             _logger.LogError(ex, "An error occured while registering the user.");
             throw;
+        }
+    }
+
+    private UserRole GetUserRole(int roleIndex)
+    {
+        switch (roleIndex)
+        {
+            case 0:
+                return UserRole.Unidentified;
+            case 1:
+                return UserRole.Admin;
+            case 2:
+                return UserRole.Author;
+            case 3:
+                return UserRole.Editor;
+            default:
+                return UserRole.Unidentified;
         }
     }
 }

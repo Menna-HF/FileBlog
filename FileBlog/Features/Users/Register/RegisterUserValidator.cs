@@ -16,8 +16,8 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserRequest>
         .NotEmpty().WithMessage("Email is required")
         .EmailAddress().WithMessage("Invalid email address");
 
-        RuleFor(x => x.Role)
-        .Must(role => role != UserRole.Unidentified).WithMessage("Please choose your role");
+        // RuleFor(x => x.Role)
+        // .Must(role => role != UserRole.Unidentified).WithMessage("Please choose your role");
     }
     private bool IsUsernameValid(string username)
     {
