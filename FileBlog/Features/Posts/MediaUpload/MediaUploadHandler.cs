@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 public class MediaUploadHandler
 {
     private readonly IPostStorage _postStorage;
@@ -8,29 +10,77 @@ public class MediaUploadHandler
         _postStorage = postStorage;
         _logger = logger;
     }
-    /*public async Task<MediaUploadResponse> HandleAsync(MediaUploadRequest request)
+
+    public async Task<MediaUploadResponse> HandleAsync(MediaUploadRequest request)
     {
-        var slug = request.Slug.Trim().ToLower().Replace(" ", "-");
-        if (!await _postStorage.SlugExistsAsync(slug))
+        try
         {
-            _logger.LogWarning("The slug '{slug}' doesn't exist.", slug);
-            throw new Exception("Post not found, please try again.");
+            var slug = request.Slug.Trim().ToLower().Replace(" ", "-");
+
+            if (!await _postStorage.SlugExistsAsync(slug))
+            {
+                _logger.LogError("The slug '{slug}' doesn't exist.", slug);
+                throw new Exception("Post not found, please try again.");
+            }
+
+            var mediaPath = PostMediaPath(slug);
+            if (string.IsNullOrEmpty(mediaPath))
+            {
+                _logger.LogError("Media path is not found.");
+                throw new Exception("Media path can't be found, please try again.");
+            }
+
+            Directory.CreateDirectory(mediaPath);
+            List<PostMediaInfo> mediaInfos = await SaveMediaFiles(request.Files, mediaPath);
+            _logger.LogInformation("Saved media files in '{mediaPath}' successfully.", mediaPath);
+
+            return new MediaUploadResponse
+            {
+                MediaInfo = mediaInfos,
+                Message = "Media uploaded successfully."
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occured during media upload.");
+            throw;
         }
 
-        var slugPostFolder = string.Empty;
-        var postsFolder = Directory.GetDirectories(Path.Combine("content", "posts"));
+    }
 
-        foreach (var folder in postsFolder)
+    private string PostMediaPath(string slug)
+    {
+        var savedFolders = Directory.GetDirectories("content/posts");
+
+        foreach (var folder in savedFolders)
         {
-            var folderName = Path.GetFileName(folder);
-            if (folderName.EndsWith($"-{slug}") == true)
+            if (folder.EndsWith(slug))
             {
-                slugPostFolder = folder;
-                break;
+                _logger.LogInformation("Found post folder for slug '{slug}' at {folder}", slug, folder);
+                return Path.Combine(folder, "assets");
             }
         }
+        return string.Empty;
+    }
 
-        string assetsPath = Path.Combine(slugPostFolder, "assets");
-        Directory.CreateDirectory(assetsPath);
-    }*/
+    private async Task<List<PostMediaInfo>> SaveMediaFiles(List<IFormFile> mediaFiles, string mediaPath)
+    {
+        List<PostMediaInfo> mediaInfos = [];
+
+        foreach (var file in mediaFiles)
+        {
+            var fileName = file.FileName.Replace(" ", "-");
+            var storeFilePath = Path.Combine(mediaPath, fileName);
+            mediaInfos.Add(new PostMediaInfo
+            {
+                FileName = fileName,
+                FilePath = storeFilePath
+            });
+            await using (var stream = new FileStream(storeFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+        }
+        return mediaInfos;
+    }
 }
