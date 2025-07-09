@@ -12,15 +12,9 @@ public class MediaUploadEndpoint
                 return Results.BadRequest(errors);
             }
 
-            try
-            {
-                var response = await handler.HandleAsync(request);
-                return Results.Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { Message = ex.Message });
-            }
-        });
+            var response = await handler.HandleAsync(request);
+            return Results.Ok(response);
+            
+        }).RequireAuthorization("AllowedToCreatePosts");
     }
 }

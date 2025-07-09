@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using FileBlog.Features.ExceptionHandling;
 
 public class LoginHandler
 {
@@ -14,41 +15,35 @@ public class LoginHandler
         _tokenGenerator = tokenGenerator;
         _logger = logger;
     }
+
     public async Task<LoginResponse> HandleAsync(LoginRequest request)
     {
-        try
+        var user = await _userStorage.GetUserByUsernameAsync(request.Username);
+
+        if (user == null)
         {
-
-            var user = await _userStorage.GetUserByUsernameAsync(request.Username);
-            if (user == null)
-            {
-                _logger.LogWarning("No user with the username '{username}' is found.", request.Username);
-                throw new Exception("Incorrect username, please try again.");
-            }
-
-            var isPasswordMatch = _passwordHasher.VerifyHashedPassword(user, user.HashedPassword, request.Password);
-            if (isPasswordMatch != PasswordVerificationResult.Success)
-            {
-                _logger.LogWarning("Incorrect password to the username '{username}'.", request.Username);
-                throw new Exception("Incorrect password, please try again.");
-            }
-
-            var token = _tokenGenerator.GenerateToken(user);
-            _logger.LogInformation("Successfully generated token to the user with username '{username}'.", user.Username);
-            _logger.LogInformation("Login successful for user '{username}' with ID '{id}'.", user.Username, user.Id);
-
-            return new LoginResponse
-            {
-                Token = token,
-                Username = user.Username,
-                Role = user.Role,
-                Message = "Login successful."
-            };
+            _logger.LogWarning("No user with the username '{username}' is found.", request.Username);
+            throw new IncorrectInputException("Incorrect username, please try again.");
         }
-        catch (Exception ex)
+
+        var isPasswordMatch = _passwordHasher.VerifyHashedPassword(user, user.HashedPassword, request.Password);
+
+        if (isPasswordMatch != PasswordVerificationResult.Success)
         {
-            _logger.LogError(ex, "An error occured while loging in.");
-            throw;
+            _logger.LogWarning("Incorrect password to the username '{username}'.", request.Username);
+            throw new IncorrectInputException("Incorrect password, please try again.");
         }
+
+        var token = _tokenGenerator.GenerateToken(user);
+        _logger.LogInformation("Successfully generated token to the user with username '{username}'.", user.Username);
+        _logger.LogInformation("Login successful for user '{username}' with ID '{id}'.", user.Username, user.Id);
+
+        return new LoginResponse
+        {
+            Token = token,
+            Username = user.Username,
+            Role = user.Role,
+            Message = "Login successful."
+        };
     }
 }

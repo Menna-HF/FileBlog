@@ -5,20 +5,15 @@ public class LoginEndpoint
         app.MapPost("/login", async (LoginValidator validator, LoginHandler handler, LoginRequest request) =>
         {
             var validation = await validator.ValidateAsync(request);
+
             if (!validation.IsValid)
             {
                 var errors = validation.Errors.Select(x => new { x.PropertyName, x.ErrorMessage });
                 return Results.BadRequest(errors);
             }
-            try
-            {
-                var response = await handler.HandleAsync(request);
-                return Results.Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(new { Message = ex.Message });
-            }
+
+            var response = await handler.HandleAsync(request);
+            return Results.Ok(response);
         });
     }
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using FileBlog.Features.ExceptionHandling;
 
 public class MediaUploadHandler
 {
@@ -13,39 +13,30 @@ public class MediaUploadHandler
 
     public async Task<MediaUploadResponse> HandleAsync(MediaUploadRequest request)
     {
-        try
+        var slug = request.Slug.Trim().ToLower().Replace(" ", "-");
+
+        if (!await _postStorage.SlugExistsAsync(slug))
         {
-            var slug = request.Slug.Trim().ToLower().Replace(" ", "-");
-
-            if (!await _postStorage.SlugExistsAsync(slug))
-            {
-                _logger.LogError("The slug '{slug}' doesn't exist.", slug);
-                throw new Exception("Post not found, please try again.");
-            }
-
-            var mediaPath = PostMediaPath(slug);
-            if (string.IsNullOrEmpty(mediaPath))
-            {
-                _logger.LogError("Media path is not found.");
-                throw new Exception("Media path can't be found, please try again.");
-            }
-
-            Directory.CreateDirectory(mediaPath);
-            List<PostMediaInfo> mediaInfos = await SaveMediaFiles(request.Files, mediaPath);
-            _logger.LogInformation("Saved media files in '{mediaPath}' successfully.", mediaPath);
-
-            return new MediaUploadResponse
-            {
-                MediaInfo = mediaInfos,
-                Message = "Media uploaded successfully."
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occured during media upload.");
-            throw;
+            _logger.LogError("The slug '{slug}' doesn't exist.", slug);
+            throw new NoPostFoundException("Post not found, please try again.");
         }
 
+        var mediaPath = PostMediaPath(slug);
+        if (string.IsNullOrEmpty(mediaPath))
+        {
+            _logger.LogError("Media path is not found.");
+            throw new NotFoundException("Media path can't be found, please try again.");
+        }
+
+        Directory.CreateDirectory(mediaPath);
+        List<PostMediaInfo> mediaInfos = await SaveMediaFiles(request.Files, mediaPath);
+        _logger.LogInformation("Saved media files in '{mediaPath}' successfully.", mediaPath);
+
+        return new MediaUploadResponse
+        {
+            MediaInfo = mediaInfos,
+            Message = "Media uploaded successfully."
+        };
     }
 
     private string PostMediaPath(string slug)

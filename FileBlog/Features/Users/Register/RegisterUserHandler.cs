@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.OpenApi.Extensions;
+using FileBlog.Features.ExceptionHandling;
 
 public class RegisterUserHandler
 {
@@ -13,42 +13,39 @@ public class RegisterUserHandler
         _passwordHasher = passwordHasher;
         _logger = logger;
     }
+
     public async Task<RegisterUserResponse> HandleAsync(RegisterUserRequest request)
     {
-        try
-        {
-            bool usernameExists = await _userStorage.UsernameExists(request.Username);
-            if (usernameExists)
-            {
-                _logger.LogWarning("The username '{username}' already exists.", request.Username);
-                throw new Exception("Username is taken, please try another one.");
-            }
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Username = request.Username.Trim().ToLower(),
-                Email = request.Email,
-                Role = GetUserRole(request.Role),
-                RegistrationDate = DateTime.UtcNow
-            };
-            user.HashedPassword = _passwordHasher.HashPassword(user, request.Password);
-            _logger.LogInformation("Password hashed successfully.");
-            await _userStorage.SaveUserAsync(user);
-            _logger.LogInformation("User registered with username '{username}'.", user.Username);
+        bool usernameExists = await _userStorage.UsernameExists(request.Username);
 
-            return new RegisterUserResponse
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role
-            };
-        }
-        catch (Exception ex)
+        if (usernameExists)
         {
-            _logger.LogError(ex, "An error occured while registering the user.");
-            throw;
+            _logger.LogWarning("The username '{username}' already exists.", request.Username);
+            throw new UserExistsException("Username is taken, please try another one.");
         }
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = request.Username.Trim().ToLower(),
+            Email = request.Email,
+            Role = GetUserRole(request.Role),
+            RegistrationDate = DateTime.UtcNow
+        };
+
+        user.HashedPassword = _passwordHasher.HashPassword(user, request.Password);
+        _logger.LogInformation("Password hashed successfully.");
+
+        await _userStorage.SaveUserAsync(user);
+        _logger.LogInformation("User registered with username '{username}'.", user.Username);
+
+        return new RegisterUserResponse
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            Role = user.Role
+        };
     }
 
     private UserRole GetUserRole(int roleIndex)

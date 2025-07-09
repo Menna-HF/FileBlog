@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 public class GetAllPostsHandler
 {
     private readonly IPostStorage _postStorage;
@@ -10,42 +8,23 @@ public class GetAllPostsHandler
         _postStorage = postStorage;
         _logger = logger;
     }
+
     public async Task<GetAllPostsResponse> HandleAsync(GetAllPostsRequest request)
     {
-        try
-        {
-            var posts = await GetFilteredPostsAsync(request.Tags, request.Categories);
-            var message = (posts.Count > 0) ? "The posts have been retrieved successfully." : "No posts match the given tags or categories, please try other ones.";
-            _logger.LogInformation("Retrieved posts after filtering.");
+        var posts = await GetFilteredPostsAsync(request.Tags, request.Categories);
+        var message = (posts.Count > 0) ? "The posts have been retrieved successfully." : "No posts match the given tags or categories, please try other ones.";
+        _logger.LogInformation("Retrieved posts after filtering.");
 
-            return new GetAllPostsResponse
-            {
-                Posts = posts,
-                Message = message
-            };
-        }
-        catch (Exception ex)
+        return new GetAllPostsResponse
         {
-            _logger.LogError(ex, "An error occured while getting all posts.");
-            throw;
-        }
+            Posts = posts,
+            Message = message
+        };
     }
-    private async Task<List<Post>> GetAllPostsAsync()
-    {
-        List<Post> allPosts = [];
-        var metaFiles = _postStorage.GetMetaFiles();
-        foreach (var file in metaFiles)
-        {
-            var json = await File.ReadAllTextAsync(file);
-            var post = JsonSerializer.Deserialize<Post>(json);
-            if (post != null)
-                allPosts.Add(post);
-        }
-        return allPosts;
-    }
+
     private async Task<List<Post>> GetFilteredPostsAsync(List<string> tags, List<string> categories)
     {
-        var allPosts = await GetAllPostsAsync();
+        var allPosts = await _postStorage.GetAllPostsAsync();
         List<Post> filteredPosts = [];
 
         if (tags.Count == 0 && categories.Count == 0)
