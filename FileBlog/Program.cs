@@ -1,4 +1,5 @@
 using System.Text;
+using FileBlog.Features.ExceptionHandling;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +20,8 @@ builder.Services.AddScoped<UpdatePostValidator>();
 builder.Services.AddScoped<UpdatePostHandler>();
 builder.Services.AddScoped<RegisterUserValidator>();
 builder.Services.AddScoped<RegisterUserHandler>();
+builder.Services.AddScoped<MediaUploadValidator>();
+builder.Services.AddScoped<MediaUploadHandler>();
 builder.Services.AddScoped<LoginValidator>();
 builder.Services.AddScoped<LoginHandler>();
 
@@ -63,6 +66,24 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (CustomException customEx)
+    {
+        context.Response.StatusCode = customEx.StatusCode;
+        await context.Response.WriteAsJsonAsync(new { Message = customEx.Message });
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { Message = $"An unexpected error occurred: {ex.Message}" });
+    }
+});
+
 CreatePostEndpoint.Map(app);
 GetPostBySlugEndpoint.Map(app);
 GetAllPostsEndpoint.Map(app);
@@ -70,4 +91,5 @@ DeletePostEndpoint.Map(app);
 UpdatePostEndpoint.Map(app);
 RegisterUserEndpoint.Map(app);
 LoginEndpoint.Map(app);
+MediaUploadEndpoint.Map(app);
 app.Run();
