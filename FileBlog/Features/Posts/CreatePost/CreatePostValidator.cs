@@ -1,4 +1,3 @@
-using System.Data;
 using FluentValidation;
 
 public class CreatePostValidator : AbstractValidator<CreatePostRequest>

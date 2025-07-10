@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualBasic;
 
 public class TokenGenerator
 {
@@ -12,6 +11,7 @@ public class TokenGenerator
     {
         _secretKey = secretKey;
     }
+    
     public string GenerateToken(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));

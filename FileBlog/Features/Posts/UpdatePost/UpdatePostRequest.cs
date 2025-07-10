@@ -1,5 +1,3 @@
-using System.Collections;
-
 public class UpdatePostRequest
 {
     public string? Slug { get; set; }
