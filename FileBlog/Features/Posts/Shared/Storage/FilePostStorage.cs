@@ -1,12 +1,18 @@
+using System.Globalization;
 using System.Text.Json;
 
 public class FilePostStorage : IPostStorage
 {
     private readonly string _postStorageFolder = Path.Combine("content", "posts");
+    private readonly string _tagsStorageFolder = Path.Combine("content", "tags");
+    private readonly string _categoriesStorageFolder = Path.Combine("content", "categories");
+    private readonly string _url = "http://localhost:5054/";
 
     public FilePostStorage()
     {
         Directory.CreateDirectory(_postStorageFolder);
+        Directory.CreateDirectory(_tagsStorageFolder);
+        Directory.CreateDirectory(_categoriesStorageFolder);
     }
 
     private string[] GetMetaFiles()
@@ -34,6 +40,7 @@ public class FilePostStorage : IPostStorage
         string slugInPath = post.Slug.Trim().ToLower().Replace(" ", "-");
         string folderName = $"{dateInPath}-{slugInPath}";
         string folderPath = Path.Combine(_postStorageFolder, folderName);
+        string url = $"{_url}posts/{slugInPath}";
 
         Directory.CreateDirectory(folderPath);
 
@@ -43,10 +50,42 @@ public class FilePostStorage : IPostStorage
 
         Directory.CreateDirectory(assetsPath);
 
-        var json = JsonSerializer.Serialize(post, new JsonSerializerOptions { WriteIndented = true });
+        var metaData = new
+        {
+            post.Title,
+            post.Description,
+            post.Tags,
+            post.Categories,
+            url
+        };
 
-        await File.WriteAllTextAsync(metaPath, json);
+        var metaJson = JsonSerializer.Serialize(metaData, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(metaPath, metaJson);
         await File.WriteAllTextAsync(contentPath, post.Body);
+
+        foreach (var tag in post.Tags.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var modifiedTag = tag.Trim().ToLower().Replace(" ", "-");
+            var tagPath = Path.Combine(_tagsStorageFolder, $"{modifiedTag}.json");
+
+            if (!File.Exists(tagPath))
+            {
+                var tagJson = JsonSerializer.Serialize(new { Name = tag }, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(tagPath, tagJson);
+            }
+        }
+
+        foreach (var category in post.Categories.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var modifiedCategory = category.Trim().ToLower().Replace(" ", "-");
+            var categoryPath = Path.Combine(_categoriesStorageFolder, $"{modifiedCategory}.json");
+
+            if (!File.Exists(categoryPath))
+            {
+                var categoryJson = JsonSerializer.Serialize(new { Name = category });
+                await File.WriteAllTextAsync(categoryPath, categoryJson);
+            }
+        }
     }
 
     public async Task<Post?> GetPostBySlugAsync(string slug)
